@@ -1,0 +1,111 @@
+services:
+  # Build the compute node image
+  node-image:
+    build:
+      context: ./node_image
+    image: node-image   # Name of the image built from Dockerfile
+
+  # Master node (runs Slurm controller and Warewulf)
+  master:
+    image: node-image   # Specify the version if needed
+    container_name: slurm-master
+    hostname: master
+    networks:
+      slurm-net:
+        ipv4_address: 192.168.10.2
+    volumes:
+      - /mnt/shared_storage:/data         # Persistent storage
+      - /mnt/shared_homes:/home           # Shared home directories
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro  # Bind mount for systemd
+    tmpfs:
+      - /run
+      - /tmp
+    deploy:
+      resources:
+        limits:
+          memory: 2GB
+          cpus: '2'
+    privileged: true        # Required for Warewulf to function properly, and for systemctl
+    environment:
+      - ROLE=master
+    command: /usr/sbin/init
+    cap_add:
+      - SYS_TIME  # Add capability to adjust system time
+
+  compute1:
+    image: node-image   # Use the image built above. No idea how docker-compose figures out its name...
+    container_name: compute-node-1
+    hostname: compute1
+    networks:
+      slurm-net:
+        ipv4_address: 192.168.10.11
+    deploy:
+      resources:
+        limits:
+          memory: 1GB
+    volumes:
+      - /mnt/shared_storage:/data
+      - /mnt/shared_homes:/home
+    command: /bin/bash -c "tail -f /dev/null"
+
+  compute2:
+    image: node-image
+    container_name: compute-node-2
+    hostname: compute2
+    networks:
+      slurm-net:
+        ipv4_address: 192.168.10.12
+    deploy:
+      resources:
+        limits:
+          memory: 1GB
+    volumes:
+      - /mnt/shared_storage:/data
+      - /mnt/shared_homes:/home
+    command: /bin/bash -c "tail -f /dev/null"
+
+  compute3:
+    image: node-image
+    container_name: compute-node-3
+    hostname: compute3
+    networks:
+      slurm-net:
+        ipv4_address: 192.168.10.13
+    deploy:
+      resources:
+        limits:
+          memory: 1GB
+    volumes:
+      - /mnt/shared_storage:/data
+      - /mnt/shared_homes:/home
+    command: /bin/bash -c "tail -f /dev/null"
+
+  compute4:
+    image: node-image
+    container_name: compute-node-4
+    hostname: compute4
+    networks:
+      slurm-net:
+        ipv4_address: 192.168.10.14
+    deploy:
+      resources:
+        limits:
+          memory: 1GB
+    volumes:
+      - /mnt/shared_storage:/data
+      - /mnt/shared_homes:/home
+    command: /bin/bash -c "tail -f /dev/null"
+
+networks:
+  slurm-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.10.0/24
+
+volumes:
+  master:
+  compute1:
+  compute2:
+  compute3:
+  compute4:
