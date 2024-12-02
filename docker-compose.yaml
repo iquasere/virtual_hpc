@@ -14,12 +14,9 @@ services:
       slurm-net:
         ipv4_address: 192.168.10.2
     volumes:
-      - /mnt/shared_storage:/data         # Persistent storage
-      - /mnt/shared_homes:/home           # Shared home directories
-      - /sys/fs/cgroup:/sys/fs/cgroup:ro  # Bind mount for systemd
-    tmpfs:
-      - /run
-      - /tmp
+      - /mnt/shared_storage:/data               # Persistent storage
+      #- /mnt/shared_homes:/home                 # Shared home directories
+      #- /sys/fs/cgroup:/sys/fs/cgroup:ro        # Bind mount for systemd
     deploy:
       resources:
         limits:
@@ -29,8 +26,6 @@ services:
     environment:
       - ROLE=master
     command: /usr/sbin/init
-    cap_add:
-      - SYS_TIME  # Add capability to adjust system time
 
   compute1:
     image: node-image   # Use the image built above. No idea how docker-compose figures out its name...
@@ -45,7 +40,6 @@ services:
           memory: 1GB
     volumes:
       - /mnt/shared_storage:/data
-      - /mnt/shared_homes:/home
     command: /bin/bash -c "tail -f /dev/null"
 
   compute2:
@@ -61,7 +55,6 @@ services:
           memory: 1GB
     volumes:
       - /mnt/shared_storage:/data
-      - /mnt/shared_homes:/home
     command: /bin/bash -c "tail -f /dev/null"
 
   compute3:
@@ -77,7 +70,6 @@ services:
           memory: 1GB
     volumes:
       - /mnt/shared_storage:/data
-      - /mnt/shared_homes:/home
     command: /bin/bash -c "tail -f /dev/null"
 
   compute4:
@@ -93,12 +85,11 @@ services:
           memory: 1GB
     volumes:
       - /mnt/shared_storage:/data
-      - /mnt/shared_homes:/home
     command: /bin/bash -c "tail -f /dev/null"
 
 networks:
   slurm-net:
-    driver: bridge
+    driver: bridge        # Should try with macvlan, but it removes internet access
     ipam:
       config:
         - subnet: 192.168.10.0/24
